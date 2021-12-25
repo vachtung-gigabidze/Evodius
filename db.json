@@ -1,0 +1,89 @@
+{
+    "cars": [{
+            "gn": "103",
+            "model": "",
+            "motor": [{
+                "name": "Motor1",
+                "fueltype": "ДТ",
+                "fuelconsuption": [{
+                        "kindWork": "Штатная работа",
+                        "unit": "100км",
+                        "tempValue": [{
+                                "temp": "+t",
+                                "consuption": "27.5"
+                            },
+                            {
+                                "temp": "0..-10",
+                                "consuption": "27.5"
+                            },
+                            {
+                                "temp": "-10..-20",
+                                "consuption": "27.5"
+                            }
+                        ]
+                    },
+                    {
+                        "kindWork": "Штатная работа",
+                        "unit": "м/ч",
+                        "tempValue": [{
+                                "temp": "+t",
+                                "consuption": "4"
+                            },
+                            {
+                                "temp": "0..-10",
+                                "consuption": "4"
+                            },
+                            {
+                                "temp": "-10..-20",
+                                "consuption": "4"
+                            }
+                        ]
+                    }
+                ]
+            }]
+        },
+        {
+            "gn": "107",
+            "model": "",
+            "motor": [{
+                "name": "Motor1",
+                "fueltype": "ДТ",
+                "fuelconsuption": [{
+                        "kindWork": "Штатная работа",
+                        "unit": "100км",
+                        "tempValue": [{
+                                "temp": "+t",
+                                "consuption": "27.5"
+                            },
+                            {
+                                "temp": "0..-10",
+                                "consuption": "27.5"
+                            },
+                            {
+                                "temp": "-10..-20",
+                                "consuption": "27.5"
+                            }
+                        ]
+                    },
+                    {
+                        "kindWork": "Штатная работа",
+                        "unit": "м/ч",
+                        "tempValue": [{
+                                "temp": "+t",
+                                "consuption": "4"
+                            },
+                            {
+                                "temp": "0..-10",
+                                "consuption": "4"
+                            },
+                            {
+                                "temp": "-10..-20",
+                                "consuption": "4"
+                            }
+                        ]
+                    }
+                ]
+            }]
+        }
+    ]
+}
