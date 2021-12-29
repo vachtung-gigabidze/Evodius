@@ -1,89 +1,42 @@
 {
-    "cars": [{
-            "gn": "103",
-            "model": "",
-            "motor": [{
-                "name": "Motor1",
-                "fueltype": "ДТ",
-                "fuelconsuption": [{
-                        "kindWork": "Штатная работа",
-                        "unit": "100км",
-                        "tempValue": [{
-                                "temp": "+t",
-                                "consuption": "27.5"
-                            },
-                            {
-                                "temp": "0..-10",
-                                "consuption": "27.5"
-                            },
-                            {
-                                "temp": "-10..-20",
-                                "consuption": "27.5"
-                            }
-                        ]
-                    },
-                    {
-                        "kindWork": "Штатная работа",
-                        "unit": "м/ч",
-                        "tempValue": [{
-                                "temp": "+t",
-                                "consuption": "4"
-                            },
-                            {
-                                "temp": "0..-10",
-                                "consuption": "4"
-                            },
-                            {
-                                "temp": "-10..-20",
-                                "consuption": "4"
-                            }
-                        ]
-                    }
-                ]
-            }]
+    "FUELCONSUPTION": [{
+            "UNITID": "ч",
+            "VALUE": 0,
+            "NRMMOTORKINDOFWORK": "Заправка ВС ТС1",
+            "NRMGARAGENUMBER": 103,
+            "NRMMOTORNAME": "ЯМЗ 236БЕ2",
+            "TEMPPLUS": 3.02,
+            "TEMP0_10": 3.02,
+            "TEMP10_20": 3.02,
+            "TEMP20_30": 3.02,
+            "TEMP30_40": 3.02,
+            "TEMP_40": 3.02
         },
         {
-            "gn": "107",
-            "model": "",
-            "motor": [{
-                "name": "Motor1",
-                "fueltype": "ДТ",
-                "fuelconsuption": [{
-                        "kindWork": "Штатная работа",
-                        "unit": "100км",
-                        "tempValue": [{
-                                "temp": "+t",
-                                "consuption": "27.5"
-                            },
-                            {
-                                "temp": "0..-10",
-                                "consuption": "27.5"
-                            },
-                            {
-                                "temp": "-10..-20",
-                                "consuption": "27.5"
-                            }
-                        ]
-                    },
-                    {
-                        "kindWork": "Штатная работа",
-                        "unit": "м/ч",
-                        "tempValue": [{
-                                "temp": "+t",
-                                "consuption": "4"
-                            },
-                            {
-                                "temp": "0..-10",
-                                "consuption": "4"
-                            },
-                            {
-                                "temp": "-10..-20",
-                                "consuption": "4"
-                            }
-                        ]
-                    }
-                ]
-            }]
+            "UNITID": "100км",
+            "VALUE": 0,
+            "NRMMOTORKINDOFWORK": "Работа с п/п АТЗ 25",
+            "NRMGARAGENUMBER": 103,
+            "NRMMOTORNAME": "ЯМЗ 236БЕ2",
+            "TEMPPLUS": 70,
+            "TEMP0_10": 73,
+            "TEMP10_20": 75.6,
+            "TEMP20_30": 79,
+            "TEMP30_40": 82,
+            "TEMP_40": 82.6
+        },
+        {
+            "UNITID": "ч",
+            "VALUE": 0,
+            "NRMMOTORKINDOFWORK": "Работа с п/п АТЗ 25",
+            "NRMGARAGENUMBER": 103,
+            "NRMMOTORNAME": "ЯМЗ 236БЕ2",
+            "TEMPPLUS": 3.02,
+            "TEMP0_10": 3.02,
+            "TEMP10_20": 3.02,
+            "TEMP20_30": 3.02,
+            "TEMP30_40": 3.02,
+            "TEMP_40": 3.02
         }
     ]
 }
