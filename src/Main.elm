@@ -14,6 +14,9 @@ import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import FontAwesome.Svg as SvgIcon
 import FontAwesome.Transforms as Icon
+import Url exposing (Protocol(..))
+import Http
+import Json.Decode as D
 
 
 
@@ -21,7 +24,7 @@ type alias Flags =
     {}
 
 -- The main function of the Elm program
-main : Program Flags Model Msg
+main : Program Flags Model Actions
 main =
     Browser.application
         { init = init
@@ -34,14 +37,14 @@ main =
 
 -- Initializes the Model and sends and Cmd Msg's that should be sent upon 
 -- initialization of the poject
-init : Flags -> Url.Url -> Navigation.Key -> (Model, Cmd Msg)
+init : Flags -> Url.Url -> Navigation.Key -> (Model, Cmd Actions)
 init {} url key =
-    ( Model 
-    , Cmd.none
+    ( { fuelConsuptions = [] , status = Loading }
+    , getFuelConsuptions
     )
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub Actions
 subscriptions _ =
     Sub.none
 
@@ -49,6 +52,55 @@ type alias Car =
   { gn : String,
     model : String
   }
+
+type alias FUELCONSUPTION = 
+      {
+            unitid: String,
+            value: Float,
+            motorkindwork:String,
+            garagenumber: String,
+            motorname: String,
+            tepmplus: Float,
+            temp0_10: Float,
+            temp10_20: Float,
+            temp20_30: Float,
+            temp30_40: Float,
+            temp_40: Float
+      }
+
+type Request = Loading | Success | Failure
+
+getFuelConsuptions : Cmd Actions
+getFuelConsuptions =
+  Http.get {
+      url = "https://my-json-server.typicode.com/vachtung-gigabidze/Evodius/FUELCONSUPTIONSS"     
+      , expect = Http.expectJson GotFuelConsuptions fuelConsuptionsDecoder
+  }
+
+fuelConsuptionsDecoder : D.Decoder (List FUELCONSUPTION)  
+fuelConsuptionsDecoder  =  D.list decoderFuelConsuption
+
+decoderFuelConsuption : D.Decoder FUELCONSUPTION
+decoderFuelConsuption = 
+  let
+      mainFields =  
+        D.map5 FUELCONSUPTION
+        (D.field "unitid" D.string)
+        (D.field "value" D.float)
+        (D.field "nrmmotorkindwork" D.string)
+        (D.field "nrmgaragenumber" D.string)
+        (D.field "nrmmotorname" D.string)     
+  in
+    D.map7
+      (<|)
+      mainFields
+      (D.field "tempplus" D.float)
+      (D.field "temp0_10" D.float)
+      (D.field "temp10_20" D.float)
+      (D.field "temp20_30" D.float)
+      (D.field "temp30_40" D.float)
+      (D.field "temp_40" D.float)
+
 
 carNumbers : List Car
 carNumbers =  [ { gn = "103", model = "спецтранспорт"}
@@ -58,21 +110,35 @@ carNumbers =  [ { gn = "103", model = "спецтранспорт"}
 ---------------------------------------- MODEL/UPDATE ----------------------------------------
 -- Data central to the application. This application has no data.
 type alias Model =
-    {}
+    { fuelConsuptions: List FUELCONSUPTION
+    , status : Request }
 
-
-type Msg 
-    = UrlChanged Url.Url
+type Actions =  
+      GotFuelConsuptions (Result Http.Error String)
+    | UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
 
-update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
-    case msg of
-        LinkClicked browser_request ->
-            ( model, Cmd.none )
+-- type Msg 
+--     = UrlChanged Url.Url
+--     | LinkClicked Browser.UrlRequest
+    
 
-        UrlChanged url ->
-            ( model, Cmd.none )
+update : Actions -> Model -> (Model, Cmd Actions)
+update msg model =  
+        case msg of 
+          GotFuelConsuptions result ->
+            case result of
+             Ok _ -> ( {model | fuelConsuptions = [FUELCONSUPTION "1" 2 "3" "4" "5" 1.1 1.1 1.1 1.1 1.1 1.2]}, Cmd.none )
+             Err err -> 
+              let _ = Debug.log "ошибка тут" err
+              in
+              ( model, Cmd.none )
+   
+          LinkClicked browser_request ->
+              ( model, Cmd.none )
+
+          UrlChanged url ->
+              ( model, Cmd.none )
 
 header : E.Element msg
 header = 
@@ -83,7 +149,7 @@ header =
            , E.el [] (E.text "v0.0.1")
         ]
 
-content =
+content model =
        E.row
           [ E.centerX
           , E.centerY
@@ -95,9 +161,9 @@ content =
             , E.centerY
             , F.bold
             , F.size 42
-            ] renderCarNumbers]
+            ] (renderCarNumbers model) ]
 
-bodyRender = [ E.layout
+bodyRender model = [ E.layout
             [ E.width E.fill
             , E.height E.fill
             
@@ -106,20 +172,20 @@ bodyRender = [ E.layout
             ]
             <| E.column 
                 [E.width E.fill]
-                [E.html <| Icon.css, header, content]
+                [E.html <| Icon.css, header, (content model)]
 
             
         ]
 
-carRender: Car -> E.Element msg
-carRender c =  E.el [] <| E.text c.gn        
-renderCarNumbers =
-  E.column [E.width E.fill] <| List.map carRender carNumbers 
+fuelConsuptionsRender: FUELCONSUPTION -> E.Element msg
+fuelConsuptionsRender fuelConsuption =  E.el [] <| E.text fuelConsuption.garagenumber        
+renderCarNumbers model =
+  E.column [E.width E.fill] <| List.map fuelConsuptionsRender model.fuelConsuptions 
 ---------------------------------------- VIEW ----------------------------------------
 
 
 -- view : Model -> Browser.Document Msg
 view model =
     { title = "Расход топлива"
-    , body = bodyRender       
+    , body = bodyRender model      
     }
