@@ -39,7 +39,7 @@ main =
 -- initialization of the poject
 init : Flags -> Url.Url -> Navigation.Key -> (Model, Cmd Actions)
 init {} url key =
-    ( { fuelConsuptions = [] , status = Loading }
+    ( { fuelConsuptions = Loading }
     , getFuelConsuptions
     )
 
@@ -68,12 +68,12 @@ type alias FUELCONSUPTION =
             temp_40: Float
       }
 
-type Request = Loading | Success | Failure
+type Request = Loading | Success (List FUELCONSUPTION) | Failure
 
-getFuelConsuptions : Cmd Actions
+-- getFuelConsuptions : Cmd Actions
 getFuelConsuptions =
   Http.get {
-      url = "https://my-json-server.typicode.com/vachtung-gigabidze/Evodius/FUELCONSUPTIONSS"     
+      url = "https://my-json-server.typicode.com/vachtung-gigabidze/Evodius/FUELCONSUPTION"     
       , expect = Http.expectJson GotFuelConsuptions fuelConsuptionsDecoder
   }
 
@@ -110,11 +110,10 @@ carNumbers =  [ { gn = "103", model = "спецтранспорт"}
 ---------------------------------------- MODEL/UPDATE ----------------------------------------
 -- Data central to the application. This application has no data.
 type alias Model =
-    { fuelConsuptions: List FUELCONSUPTION
-    , status : Request }
+    {  fuelConsuptions : Request }
 
 type Actions =  
-      GotFuelConsuptions (Result Http.Error String)
+      GotFuelConsuptions (Result Http.Error (List FUELCONSUPTION))
     | UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
 
@@ -128,7 +127,7 @@ update msg model =
         case msg of 
           GotFuelConsuptions result ->
             case result of
-             Ok _ -> ( {model | fuelConsuptions = [FUELCONSUPTION "1" 2 "3" "4" "5" 1.1 1.1 1.1 1.1 1.1 1.2]}, Cmd.none )
+             Ok data ->  ( {model | fuelConsuptions = Success data}, Cmd.none )
              Err err -> 
               let _ = Debug.log "ошибка тут" err
               in
@@ -172,20 +171,41 @@ bodyRender model = [ E.layout
             ]
             <| E.column 
                 [E.width E.fill]
-                [E.html <| Icon.css, header, (content model)]
-
-            
+                [E.html <| Icon.css, header, (content model)]            
         ]
+
+emptyBody =  [ E.layout
+            [ E.width E.fill
+            , E.height E.fill
+            
+            , EBA.color <| E.rgb255 176 192 200
+           
+        ]  <| E.column 
+                [E.width E.fill]
+                [E.html <| Icon.css] ]        
 
 fuelConsuptionsRender: FUELCONSUPTION -> E.Element msg
 fuelConsuptionsRender fuelConsuption =  E.el [] <| E.text fuelConsuption.garagenumber        
-renderCarNumbers model =
-  E.column [E.width E.fill] <| List.map fuelConsuptionsRender model.fuelConsuptions 
+renderCarNumbers fuelConsuptions =
+  E.column [E.width E.fill] <| List.map fuelConsuptionsRender fuelConsuptions 
 ---------------------------------------- VIEW ----------------------------------------
 
 
 -- view : Model -> Browser.Document Msg
 view model =
-    { title = "Расход топлива"
-    , body = bodyRender model      
-    }
+  case model.fuelConsuptions of
+    Success fuelConsuptions ->
+            { title = "Расход топлива"
+            , body = bodyRender fuelConsuptions      
+            }
+
+    Loading ->
+         { title = "Расход топлива"
+              , body = emptyBody
+            }
+
+    Failure ->
+         { title = "Расход топлива"
+              , body = emptyBody      
+            }
+    
