@@ -1,11 +1,23 @@
 module Main exposing (..)
 
+
+import Colors as C
+import Models exposing (FuelConsuption, renderCarNumbers, fuelConsuptionsDecoder)
+
+import Header exposing (header)
 import Browser
 import Browser.Navigation as Navigation
 import Element as E
+import Element.Input as Input
 import Element.Background as EBA
 import Element.Font as F
+import Element.Border as Border
 import Url
+
+import Url exposing (Protocol(..))
+import Http
+
+import Actions exposing (Actions(..))
 import FontAwesome.Attributes as Icon
 import FontAwesome.Brands as Icon
 import FontAwesome.Icon as Icon exposing (Icon)
@@ -13,11 +25,8 @@ import FontAwesome.Layering as Icon
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import FontAwesome.Svg as SvgIcon
-import FontAwesome.Transforms as Icon
-import Url exposing (Protocol(..))
-import Http
-import Json.Decode as D
-
+import FontAwesome.Transforms as Icon 
+import Footer exposing (footer)
 
 
 type alias Flags =
@@ -53,71 +62,36 @@ type alias Car =
     model : String
   }
 
-type alias FUELCONSUPTION = 
-      {
-            unitid: String,
-            value: Float,
-            motorkindwork:String,
-            garagenumber: String,
-            motorname: String,
-            tepmplus: Float,
-            temp0_10: Float,
-            temp10_20: Float,
-            temp20_30: Float,
-            temp30_40: Float,
-            temp_40: Float
-      }
 
-type Request = Loading | Success (List FUELCONSUPTION) | Failure
+
+type Request = Loading | Success (List FuelConsuption) | Failure
 
 -- getFuelConsuptions : Cmd Actions
 getFuelConsuptions =
   Http.get {
-      url = "https://my-json-server.typicode.com/vachtung-gigabidze/Evodius/FUELCONSUPTION"     
+      url = "https://my-json-server.typicode.com/vachtung-gigabidze/Evodius/FuelConsuption"     
       , expect = Http.expectJson GotFuelConsuptions fuelConsuptionsDecoder
   }
 
-fuelConsuptionsDecoder : D.Decoder (List FUELCONSUPTION)  
-fuelConsuptionsDecoder  =  D.list decoderFuelConsuption
-
-decoderFuelConsuption : D.Decoder FUELCONSUPTION
-decoderFuelConsuption = 
-  let
-      mainFields =  
-        D.map5 FUELCONSUPTION
-        (D.field "unitid" D.string)
-        (D.field "value" D.float)
-        (D.field "nrmmotorkindwork" D.string)
-        (D.field "nrmgaragenumber" D.string)
-        (D.field "nrmmotorname" D.string)     
-  in
-    D.map7
-      (<|)
-      mainFields
-      (D.field "tempplus" D.float)
-      (D.field "temp0_10" D.float)
-      (D.field "temp10_20" D.float)
-      (D.field "temp20_30" D.float)
-      (D.field "temp30_40" D.float)
-      (D.field "temp_40" D.float)
 
 
-carNumbers : List Car
-carNumbers =  [ { gn = "103", model = "спецтранспорт"}
-                , { gn = "328", model =""}
-                , {gn = "107", model = ""} 
-              ]
+
+
+-- carNumbers : List Car
+-- carNumbers =  [ { gn = "103", model = "спецтранспорт"}
+--                 , { gn = "328", model =""}
+--                 , {gn = "107", model = ""} 
+--               ]
 ---------------------------------------- MODEL/UPDATE ----------------------------------------
 -- Data central to the application. This application has no data.
 type alias Model =
     {  fuelConsuptions : Request }
 
-type Actions =  
-      GotFuelConsuptions (Result Http.Error (List FUELCONSUPTION))
-    | UrlChanged Url.Url
-    | LinkClicked Browser.UrlRequest
 
--- type Msg 
+    
+
+-- type Msg
+--     = UserPressedButton
 --     = UrlChanged Url.Url
 --     | LinkClicked Browser.UrlRequest
     
@@ -138,15 +112,13 @@ update msg model =
 
           UrlChanged url ->
               ( model, Cmd.none )
+          ClickMsg ->
+              let _ = Debug.log "НАжАЛИ КНОПКУ"
+              in
+              ( model, Cmd.none)
 
-header : E.Element msg
-header = 
-  E.row [ E.width E.fill, EBA.color (E.rgb255 222 1 22), E.spacing 20, E.padding 20 ]
-        [
-           E.el [] (E.html (Icon.viewIcon Icon.truck))
-           , E.el [] (E.text "Калькулятор")
-           , E.el [] (E.text "v0.0.1")
-        ]
+
+
 
 content model =
        E.row
@@ -171,7 +143,7 @@ bodyRender model = [ E.layout
             ]
             <| E.column 
                 [E.width E.fill]
-                [E.html <| Icon.css, header, (content model)]            
+                [E.html <| Icon.css, header, (content model), footer]            
         ]
 
 emptyBody =  [ E.layout
@@ -184,10 +156,7 @@ emptyBody =  [ E.layout
                 [E.width E.fill]
                 [E.html <| Icon.css] ]        
 
-fuelConsuptionsRender: FUELCONSUPTION -> E.Element msg
-fuelConsuptionsRender fuelConsuption =  E.el [] <| E.text fuelConsuption.garagenumber        
-renderCarNumbers fuelConsuptions =
-  E.column [E.width E.fill] <| List.map fuelConsuptionsRender fuelConsuptions 
+
 ---------------------------------------- VIEW ----------------------------------------
 
 
