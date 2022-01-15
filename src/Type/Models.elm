@@ -1,7 +1,9 @@
-module Models exposing (..)
+module Type.Models exposing (..)
 
 import Element as E
 import Json.Decode as D
+import Variable.Colors exposing (pallete)
+import Element.Background as EBA
 type alias FuelConsuption = 
       {
             unitid: String,
@@ -17,7 +19,7 @@ type alias FuelConsuption =
             temp_40: Float
       }
 fuelConsuptionsRender: FuelConsuption -> E.Element msg
-fuelConsuptionsRender fuelConsuption =  E.el [] <| E.text fuelConsuption.motorkindwork        
+fuelConsuptionsRender fuelConsuption =  E.el [EBA.color <| pallete.primary] <| E.text (fuelConsuption.motorkindwork ++ " " ++ fuelConsuption.garagenumber)      
 renderCarNumbers fuelConsuptions =
   E.column [E.width E.fill] <| List.map fuelConsuptionsRender fuelConsuptions       
 

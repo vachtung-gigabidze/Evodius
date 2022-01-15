@@ -1,4 +1,4 @@
-module Header exposing (..)
+module Component.Header exposing (..)
 
 import Element as E
 import Element.Background as EBA
@@ -15,11 +15,13 @@ import FontAwesome.Styles as Icon
 import FontAwesome.Svg as SvgIcon
 import FontAwesome.Transforms as Icon 
 
-import Actions exposing (Actions(..))
-import Colors as C
+import Variable.Actions exposing (Actions(..))
+import Variable.Colors as C
+import Variable.Variables exposing (programName)
+
 header : E.Element Actions
 header = 
-  E.row [ E.width E.fill, EBA.color (E.rgb255 222 1 22), E.spacing 20, E.padding 20 ]
+  E.row [ E.width E.fill, EBA.color C.pallete.primary, E.spacing 20, E.padding 20 ]
         [
           Input.button 
               [  E.focused 
@@ -37,8 +39,8 @@ header =
                 onPress = Just ClickMsg
                 , label = E.el [] (E.html (Icon.viewIcon Icon.truck))
               }
-           , E.el [] (E.text "Калькулятор")
-           , E.el [] (E.text "v0.0.1")
+           , E.el [] (E.text programName)
+          --  , E.el [] (E.text "v0.0.1")
            , Input.button 
               [  E.focused 
                     [EBA.color C.color.lightGrey]

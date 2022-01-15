@@ -1,10 +1,10 @@
 module Main exposing (..)
 
 
-import Colors as C
-import Models exposing (FuelConsuption, renderCarNumbers, fuelConsuptionsDecoder)
+import Variable.Colors as C
+import Type.Models exposing (FuelConsuption, renderCarNumbers, fuelConsuptionsDecoder)
 
-import Header exposing (header)
+import Component.Header exposing (header)
 import Browser
 import Browser.Navigation as Navigation
 import Element as E
@@ -17,7 +17,7 @@ import Url
 import Url exposing (Protocol(..))
 import Http
 
-import Actions exposing (Actions(..))
+import Variable.Actions exposing (Actions(..))
 import FontAwesome.Attributes as Icon
 import FontAwesome.Brands as Icon
 import FontAwesome.Icon as Icon exposing (Icon)
@@ -26,7 +26,14 @@ import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import FontAwesome.Svg as SvgIcon
 import FontAwesome.Transforms as Icon 
-import Footer exposing (footer)
+import Component.Footer exposing (footer)
+
+import Type.Users exposing (UserData)
+
+import Type.Users exposing (User(..))
+import Debug exposing (toString)
+import Component.Auth
+import Component.Question
 
 
 type alias Flags =
@@ -48,7 +55,7 @@ main =
 -- initialization of the poject
 init : Flags -> Url.Url -> Navigation.Key -> (Model, Cmd Actions)
 init {} url key =
-    ( { fuelConsuptions = Loading }
+    ( { fuelConsuptions = Loading, user = Anonymous, ui = Nothing, calculator = {miliage= Just 0, norma=Just 1.0}}
     , getFuelConsuptions
     )
 
@@ -62,11 +69,18 @@ type alias Car =
     model : String
   }
 
-
+type alias Password = String
 
 type Request = Loading | Success (List FuelConsuption) | Failure
 
--- getFuelConsuptions : Cmd Actions
+type Ui
+
+  -- Hide authentication component model
+  = AuthUi Component.Auth.Model
+
+  -- Hide question component model
+  | QuestionUi Component.Question.Model
+
 getFuelConsuptions =
   Http.get {
       url = "https://my-json-server.typicode.com/vachtung-gigabidze/Evodius/FuelConsuption"     
@@ -74,30 +88,52 @@ getFuelConsuptions =
   }
 
 
-
-
-
--- carNumbers : List Car
--- carNumbers =  [ { gn = "103", model = "спецтранспорт"}
---                 , { gn = "328", model =""}
---                 , {gn = "107", model = ""} 
---               ]
 ---------------------------------------- MODEL/UPDATE ----------------------------------------
 -- Data central to the application. This application has no data.
 type alias Model =
-    {  fuelConsuptions : Request }
+    { fuelConsuptions : Request
+    , user: User
+    , ui: Maybe Ui 
+    , calculator: Calculator
+    }
 
+type alias Calculator = {
+    miliage: Maybe Int
+  , norma: Maybe Float
+  }
 
-    
-
--- type Msg
---     = UserPressedButton
---     = UrlChanged Url.Url
---     | LinkClicked Browser.UrlRequest
-    
+-- type Ui
+--   = LoginUi
+--   | QuestionUi
 
 update : Actions -> Model -> (Model, Cmd Actions)
-update msg model =  
+update msg model = 
+  case (msg, model.ui) of
+
+  -- Anonymous user message handling section
+    (OpenPopup, Nothing) ->
+      case Component.Auth.init model.user of
+        (authModel, commands, Just (Component.Auth.Authenticated userData)) ->
+          let
+            (questionModel, questionCommands, _) = Component.Question.init userData
+          in
+            ( { model | ui = Just <| QuestionUi questionModel, user = User userData }, Cmd.batch [Cmd.map AuthMsg commands, Cmd.map QuestionMsg questionCommands] )
+
+        (authModel, commands, _) ->
+          ( { model | ui = Just <| AuthUi authModel }, Cmd.map AuthMsg commands )
+
+  -- Handle authenticate component messages
+    (AuthMsg authMsg, Just (AuthUi authModel)) ->
+      case Component.Auth.update authMsg authModel of
+        (_, commands, Just (Component.Auth.Authenticated userData)) ->
+          let
+            (questionModel, questionCommands, _) = Component.Question.init userData
+          in
+            ( { model | ui = Just <| QuestionUi questionModel, user = User userData }, Cmd.batch [Cmd.map AuthMsg commands, Cmd.map QuestionMsg questionCommands] )
+
+        (newAuthModel, commands, _) ->
+          ( { model | ui = Just <| AuthUi newAuthModel }, Cmd.map AuthMsg commands )
+    _ ->      
         case msg of 
           GotFuelConsuptions result ->
             case result of
@@ -116,9 +152,15 @@ update msg model =
               let _ = Debug.log "НАжАЛИ КНОПКУ"
               in
               ( model, Cmd.none)
-
-
-
+          UserTypedMiliage miliageString ->
+             ( {model | calculator = {miliage =  (String.toInt miliageString), norma= model.calculator.norma}}, Cmd.none )
+          UserTypedNorma  normaString ->
+             ( {model | calculator = {miliage =  model.calculator.miliage, norma= String.toFloat normaString}}, Cmd.none )
+          UserTypedHoudling  houdlingString ->
+               ( model, Cmd.none)
+          _ ->
+            ( model, Cmd.none )
+          
 
 content model =
        E.row
@@ -134,6 +176,21 @@ content model =
             , F.size 42
             ] (renderCarNumbers model) ]
 
+error404  =
+       E.row
+          [ E.centerX
+          , E.centerY
+          , E.spacing 42
+          , E.padding 100
+          ]
+          [E.el
+            [ E.centerX
+            , E.centerY
+            , F.bold
+            , F.size 42
+            ] (E.text "Error 404") ]
+
+
 bodyRender model = [ E.layout
             [ E.width E.fill
             , E.height E.fill
@@ -142,8 +199,9 @@ bodyRender model = [ E.layout
             , E.inFront <| header
             ]
             <| E.column 
-                [E.width E.fill]
-                [E.html <| Icon.css, header, (content model), footer]            
+                [E.width E.fill
+                , E.height E.fill]
+                [E.html <| Icon.css, header, (calculator model), footer]            
         ]
 
 emptyBody =  [ E.layout
@@ -151,10 +209,48 @@ emptyBody =  [ E.layout
             , E.height E.fill
             
             , EBA.color <| E.rgb255 176 192 200
-           
+           , E.inFront <| header
         ]  <| E.column 
                 [E.width E.fill]
-                [E.html <| Icon.css] ]        
+                [E.html <| Icon.css, error404, footer] ]        
+
+calculator model =
+       E.row
+          [ E.centerX
+          , E.centerY
+          , E.spacing 42
+          , E.padding 100
+          ]
+          [E.column
+            [ E.centerX
+            , E.centerY
+            , F.bold
+            , F.size 42
+            ]  <| ( [Input.text [ E.width <| E.maximum 300 E.fill ]
+                { onChange = UserTypedMiliage
+                , text = toString <|  (case model.calculator.miliage of 
+                                        Nothing -> 0 
+                                        Just n -> n)
+                , placeholder = Just <| Input.placeholder [] <| E.text "Пробег сюда"
+                , label = Input.labelAbove [] <| E.text "Пробег"
+                }
+            , Input.text [ E.width <| E.maximum 300 E.fill ]
+                { onChange = UserTypedNorma
+                , text = String.fromFloat <|  (case model.calculator.norma of 
+                                        Nothing -> 1.0 
+                                        Just n -> n)
+                , placeholder = Just <| Input.placeholder [] <| E.text "Норма"
+                , label = Input.labelAbove [] <| E.text "Норма"
+                }
+            , Input.text [ E.width <| E.maximum 300 E.fill ]
+                { onChange = UserTypedHoudling
+                , text = toString <|  (case model.calculator.miliage of 
+                                        Nothing -> 0 
+                                        Just n -> n)
+                , placeholder = Just <| Input.placeholder [] <| E.text "Холостой ход"
+                , label = Input.labelAbove [] <| E.text "Холостой ход"
+                }
+           ] )]
 
 
 ---------------------------------------- VIEW ----------------------------------------
@@ -165,13 +261,14 @@ view model =
   case model.fuelConsuptions of
     Success fuelConsuptions ->
             { title = "Расход топлива"
-            , body = bodyRender fuelConsuptions      
+            , body = bodyRender model 
+                 
             }
 
     Loading ->
          { title = "Расход топлива"
-              , body = emptyBody
-            }
+          , body = bodyRender model
+          }
 
     Failure ->
          { title = "Расход топлива"
