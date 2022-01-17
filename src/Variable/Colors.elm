@@ -13,5 +13,5 @@ color =
 pallete = {
   primary = E.rgb255 0x72 0x9F 0xCF
   , secondary = E.rgb255 0x2E 0x34 0x36
-  , warning = E.rgb255 0xC5 0xE8 0xF7
+  , warning = E.rgb255 255 0 0
   }

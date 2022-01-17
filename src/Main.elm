@@ -34,6 +34,7 @@ import Type.Users exposing (User(..))
 import Debug exposing (toString)
 import Component.Auth
 import Component.Question
+import Variable.Colors exposing (pallete)
 
 
 type alias Flags =
@@ -55,10 +56,20 @@ main =
 -- initialization of the poject
 init : Flags -> Url.Url -> Navigation.Key -> (Model, Cmd Actions)
 init {} url key =
-    ( { fuelConsuptions = Loading, user = Anonymous, ui = Nothing, calculator = {miliage= Just 0, norma=Just 1.0}}
+    ( { fuelConsuptions = Loading, user = Anonymous, ui = Nothing, calculator = initCalculator}
     , getFuelConsuptions
     )
 
+
+initCalculator = {
+      miliage = Just 0
+    , normaKm = FloatField Nothing ""
+    , motorHour = FloatField Nothing ""
+    , normaMotorHour = FloatField Nothing ""
+    , houdling = FloatField Nothing ""
+    , normaHoudling = FloatField Nothing ""
+    , consumption = FloatField Nothing ""
+    }
 
 subscriptions : Model -> Sub Actions
 subscriptions _ =
@@ -99,12 +110,38 @@ type alias Model =
 
 type alias Calculator = {
     miliage: Maybe Int
-  , norma: Maybe Float
+  , normaKm: FloatField
+  , motorHour: FloatField
+  , normaMotorHour: FloatField
+  , houdling: FloatField
+  , normaHoudling: FloatField
+  , consumption: FloatField
   }
 
--- type Ui
---   = LoginUi
---   | QuestionUi
+type FloatField 
+  = FloatField (Maybe Float) String
+
+floatFieldToString : FloatField -> String
+floatFieldToString floatField =
+  case floatField of
+    FloatField Nothing float ->
+      float
+    FloatField (Just _) float ->
+      float
+
+
+floatValidationStyle floatField =
+  case floatField of
+    FloatField Nothing float ->
+      if float == "" then
+        []
+      else
+        [EBA.color pallete.warning]
+    FloatField (Just float) _ ->
+      []
+
+updateHelp foo int =
+  { foo | bar = int }      
 
 update : Actions -> Model -> (Model, Cmd Actions)
 update msg model = 
@@ -153,15 +190,30 @@ update msg model =
               in
               ( model, Cmd.none)
           UserTypedMiliage miliageString ->
-             ( {model | calculator = {miliage =  (String.toInt miliageString), norma= model.calculator.norma}}, Cmd.none )
+             let calucator = model.calculator in
+              ( {model | calculator = {calucator | miliage =  (String.toInt miliageString)}}, Cmd.none )
           UserTypedNorma  normaString ->
-             ( {model | calculator = {miliage =  model.calculator.miliage, norma= String.toFloat normaString}}, Cmd.none )
+            if String.right 1 normaString == "." then
+              let calucator = model.calculator in 
+               ( {model | calculator = {calucator | normaKm = FloatField Nothing normaString}}, Cmd.none )
+            else
+              let
+                maybeFloat = 
+                  normaString |> String.toFloat
+              in
+              case maybeFloat of
+                Nothing ->
+                  let calucator = model.calculator in 
+                    ( {model | calculator =  {calucator | normaKm = FloatField Nothing normaString}}, Cmd.none )
+                Just f ->
+                  let calucator = model.calculator in 
+                    ( {model | calculator =  {calucator | normaKm = FloatField (Just f) normaString}}, Cmd.none )
           UserTypedHoudling  houdlingString ->
                ( model, Cmd.none)
           _ ->
             ( model, Cmd.none )
           
-
+---------------------------------------- VIEW ----------------------------------------
 content model =
        E.row
           [ E.centerX
@@ -234,11 +286,9 @@ calculator model =
                 , placeholder = Just <| Input.placeholder [] <| E.text "Пробег сюда"
                 , label = Input.labelAbove [] <| E.text "Пробег"
                 }
-            , Input.text [ E.width <| E.maximum 300 E.fill ]
+            , Input.text ([E.width <| E.maximum 300 E.fill ] ++ floatValidationStyle model.calculator.normaKm)
                 { onChange = UserTypedNorma
-                , text = String.fromFloat <|  (case model.calculator.norma of 
-                                        Nothing -> 1.0 
-                                        Just n -> n)
+                , text = (floatFieldToString model.calculator.normaKm)
                 , placeholder = Just <| Input.placeholder [] <| E.text "Норма"
                 , label = Input.labelAbove [] <| E.text "Норма"
                 }
@@ -253,7 +303,7 @@ calculator model =
            ] )]
 
 
----------------------------------------- VIEW ----------------------------------------
+
 
 
 -- view : Model -> Browser.Document Msg
