@@ -35,6 +35,8 @@ import Debug exposing (toString)
 import Component.Auth
 import Component.Question
 import Variable.Colors exposing (pallete)
+import FontAwesome.Solid exposing (calculator)
+import Component.Calculator exposing (..)
 
 
 type alias Flags =
@@ -62,7 +64,7 @@ init {} url key =
 
 
 initCalculator = {
-      miliage = Just 0
+      miliage = FloatField Nothing ""
     , normaKm = FloatField Nothing ""
     , motorHour = FloatField Nothing ""
     , normaMotorHour = FloatField Nothing ""
@@ -107,38 +109,6 @@ type alias Model =
     , ui: Maybe Ui 
     , calculator: Calculator
     }
-
-type alias Calculator = {
-    miliage: Maybe Int
-  , normaKm: FloatField
-  , motorHour: FloatField
-  , normaMotorHour: FloatField
-  , houdling: FloatField
-  , normaHoudling: FloatField
-  , consumption: FloatField
-  }
-
-type FloatField 
-  = FloatField (Maybe Float) String
-
-floatFieldToString : FloatField -> String
-floatFieldToString floatField =
-  case floatField of
-    FloatField Nothing float ->
-      float
-    FloatField (Just _) float ->
-      float
-
-
-floatValidationStyle floatField =
-  case floatField of
-    FloatField Nothing float ->
-      if float == "" then
-        []
-      else
-        [EBA.color pallete.warning]
-    FloatField (Just float) _ ->
-      []
 
 updateHelp foo int =
   { foo | bar = int }      
@@ -191,7 +161,8 @@ update msg model =
               ( model, Cmd.none)
           UserTypedMiliage miliageString ->
              let calucator = model.calculator in
-              ( {model | calculator = {calucator | miliage =  (String.toInt miliageString)}}, Cmd.none )
+              ( {model | calculator = {calucator | miliage =  (FloatField Nothing miliageString)}}, Cmd.none )
+              
           UserTypedNorma  normaString ->
             if String.right 1 normaString == "." then
               let calucator = model.calculator in 
@@ -210,6 +181,8 @@ update msg model =
                     ( {model | calculator =  {calucator | normaKm = FloatField (Just f) normaString}}, Cmd.none )
           UserTypedHoudling  houdlingString ->
                ( model, Cmd.none)
+          Calculate ->
+            ( model, Cmd.none)
           _ ->
             ( model, Cmd.none )
           
@@ -253,7 +226,7 @@ bodyRender model = [ E.layout
             <| E.column 
                 [E.width E.fill
                 , E.height E.fill]
-                [E.html <| Icon.css, header, (calculator model), footer]            
+                [E.html <| Icon.css, header, (calculatorView model), footer]            
         ]
 
 emptyBody =  [ E.layout
@@ -266,41 +239,6 @@ emptyBody =  [ E.layout
                 [E.width E.fill]
                 [E.html <| Icon.css, error404, footer] ]        
 
-calculator model =
-       E.row
-          [ E.centerX
-          , E.centerY
-          , E.spacing 42
-          , E.padding 100
-          ]
-          [E.column
-            [ E.centerX
-            , E.centerY
-            , F.bold
-            , F.size 42
-            ]  <| ( [Input.text [ E.width <| E.maximum 300 E.fill ]
-                { onChange = UserTypedMiliage
-                , text = toString <|  (case model.calculator.miliage of 
-                                        Nothing -> 0 
-                                        Just n -> n)
-                , placeholder = Just <| Input.placeholder [] <| E.text "Пробег сюда"
-                , label = Input.labelAbove [] <| E.text "Пробег"
-                }
-            , Input.text ([E.width <| E.maximum 300 E.fill ] ++ floatValidationStyle model.calculator.normaKm)
-                { onChange = UserTypedNorma
-                , text = (floatFieldToString model.calculator.normaKm)
-                , placeholder = Just <| Input.placeholder [] <| E.text "Норма"
-                , label = Input.labelAbove [] <| E.text "Норма"
-                }
-            , Input.text [ E.width <| E.maximum 300 E.fill ]
-                { onChange = UserTypedHoudling
-                , text = toString <|  (case model.calculator.miliage of 
-                                        Nothing -> 0 
-                                        Just n -> n)
-                , placeholder = Just <| Input.placeholder [] <| E.text "Холостой ход"
-                , label = Input.labelAbove [] <| E.text "Холостой ход"
-                }
-           ] )]
 
 
 

@@ -19,6 +19,7 @@ type Actions =
     | UserTypedMiliage String
     | UserTypedNorma String
     | UserTypedHoudling String
+    | Calculate
     -- | OpenPopup
     -- | LoginTyped UserName
     -- | PasswordTyped String
